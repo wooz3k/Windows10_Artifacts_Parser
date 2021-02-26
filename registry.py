@@ -24,40 +24,49 @@ def Windows_User_Id_Set():
 	return result
 
 def Windows_info():
-    Wininfo_Key = OpenKey(HKEY_LOCAL_MACHINE,r"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")
-    print ('OS_Name : ' + QueryValueEx(Wininfo_Key, 'ProductName')[0])
-    print ('OS_Root_Directory : ' + QueryValueEx(Wininfo_Key, 'SystemRoot')[0])
-    OS_install_Date = QueryValueEx(Wininfo_Key, 'installDate')[0]
-    OS_install_Date = datetime.fromtimestamp(OS_install_Date)
-    print ('OS_install_Date : ' + str(OS_install_Date))
-    Wininfo_Key = OpenKey(HKEY_LOCAL_MACHINE,r"SYSTEM\\ControlSet001\\Control\\ComputerName\\ActiveComputerName")
-    print ('ComputerName : ' + QueryValueEx(Wininfo_Key, 'ComputerName')[0])
-    Wininfo_Key = OpenKey(HKEY_LOCAL_MACHINE,r"SYSTEM\\ControlSet001\\Control\\Windows")
-    Last_ShutDown_Time = QueryValueEx(Wininfo_Key, 'ShutdownTime')[0]
-    Last_ShutDown_Time = Win_ts(struct.unpack_from("<Q", Last_ShutDown_Time)[0]).strftime('%Y:%m:%d-%H:%M:%S.%f')
-    print ("Last_ShutDonw_Time : " + str(Last_ShutDown_Time))
+	Wininfo_Key = OpenKey(HKEY_LOCAL_MACHINE,r"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")
+	print ('OS_Name : ' + QueryValueEx(Wininfo_Key, 'ProductName')[0])
+	result='OS_Name : ' + QueryValueEx(Wininfo_Key, 'ProductName')[0]+"\n"
+	print ('OS_Root_Directory : ' + QueryValueEx(Wininfo_Key, 'SystemRoot')[0])
+	result+='OS_Root_Directory : ' + QueryValueEx(Wininfo_Key, 'SystemRoot')[0]+"\n"
+	OS_install_Date = QueryValueEx(Wininfo_Key, 'installDate')[0]
+	OS_install_Date = datetime.fromtimestamp(OS_install_Date)
+	print ('OS_install_Date : ' + str(OS_install_Date))
+	result+='OS_install_Date : ' + str(OS_install_Date)+"\n"
+	Wininfo_Key = OpenKey(HKEY_LOCAL_MACHINE,r"SYSTEM\\ControlSet001\\Control\\ComputerName\\ActiveComputerName")
+	print ('ComputerName : ' + QueryValueEx(Wininfo_Key, 'ComputerName')[0])
+	result+='ComputerName : ' + QueryValueEx(Wininfo_Key, 'ComputerName')[0]+"\n"
+	Wininfo_Key = OpenKey(HKEY_LOCAL_MACHINE,r"SYSTEM\\ControlSet001\\Control\\Windows")
+	Last_ShutDown_Time = QueryValueEx(Wininfo_Key, 'ShutdownTime')[0]
+	Last_ShutDown_Time = Win_ts(struct.unpack_from("<Q", Last_ShutDown_Time)[0]).strftime('%Y:%m:%d-%H:%M:%S.%f')
+	print ("Last_ShutDonw_Time : " + str(Last_ShutDown_Time))
+	result+="Last_ShutDonw_Time : " + str(Last_ShutDown_Time)
+
+	return result
+
+	
 
 def Recent_Drawing():
-	Drawing_Key = OpenKey(HKEY_CURRENT_USER,r"Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Paint\\Recent File List")
 	try :
+		Drawing_Key = OpenKey(HKEY_CURRENT_USER,r"Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Paint\\Recent File List")
 		cut = 0
 		while True:
 			name, value, type = EnumValue(Drawing_Key, cut)
 			print (name + ': ' + value)
 			cut += 1
 	except WindowsError:
-		pass
+		print("값이 없습니다.")
 
 def Recent_Wordpad():
-	Wordpad_Key = OpenKey(HKEY_CURRENT_USER,r"Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\wordpad\\Recent File List")
 	try :
+		Wordpad_Key = OpenKey(HKEY_CURRENT_USER,r"Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\wordpad\\Recent File List")
 		cut = 0
 		while True:
 			name, value, type = EnumValue(Wordpad_Key, cut)
 			print (name + ': ' + value)
 			cut += 1
 	except WindowsError:
-		pass
+		print("값이 없습니다.")
 
 def Recent_Hwp():
 	Hwp_Key = OpenKey(HKEY_CURRENT_USER,r"Software\\Hnc\\Hwp\\9.0\\HwpFrame_KOR\\RecentFile")
@@ -191,10 +200,10 @@ def Regedit_LastKey():
 	print("Regedit_LastKey : "+QueryValueEx(Regedit_LastKey_Key,"LastKey")[0])
 
 def Recent_Dialog():
-	Sub_Key = Windows_User_Id_Set()
-	Sub_Key += "\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ComDlg32\\LastVisitedPidlMRU"
-	Dialog_Key = OpenKey(HKEY_USERS, Sub_Key)
 	try:
+		Sub_Key = Windows_User_Id_Set()
+		Sub_Key += "\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ComDlg32\\LastVisitedPidlMRU"
+		Dialog_Key = OpenKey(HKEY_USERS, Sub_Key)
 		cut = 1
 		Data_Name, Data_Value = [], []
 		while True:
@@ -203,16 +212,9 @@ def Recent_Dialog():
 			Data_Value.append(value.decode('utf-16',errors="ignore").split("\x00")[0])
 			cut += 1
 	except WindowsError:
-		i = 1
-		Data_Name.sort()
-		while True:
-			print(str(Data_Name[i-1])+": "+str(Data_Value[i-1]))
-			i += 1
-			if i >= cut:
-				break
-			else:
-				pass
+		print("값이 없습니다.")
 
+		
 def run():
 	command_check = ["Windows_info()", "Recent_Drawing()", "Recent_Wordpad()", "Recent_Hwp()", "User_Profile_List()", "Recent_Office()", "Recent_Login_User()", "Public_Directory()", "Recent_Run()", "Internet_Explorer_Config()", "Internet_Explorer_Search_Log()", "Recent_Dialog()", "Regedit_LastKey()" ]
 	help_check = ["rg -h()", "rg-h()", "rg -help()", "rg-help()"]
@@ -231,5 +233,3 @@ def run():
 					break
 		else:
 			print('error')
-			
-run()
